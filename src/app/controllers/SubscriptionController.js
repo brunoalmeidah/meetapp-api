@@ -18,8 +18,6 @@ class SubscriptionController {
 
     const meetup = await Meetup.findByPk(meetup_id);
 
-    console.log(meetup.user_id === user_id || meetup.done);
-
     if (meetup.user_id === user_id || meetup.done) {
       return res
         .status(400)
