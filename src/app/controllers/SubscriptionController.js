@@ -3,6 +3,8 @@ import { Op } from 'sequelize';
 import { startOfHour, endOfHour } from 'date-fns';
 import Subscription from '../models/Subscription';
 import Meetup from '../models/Meetup';
+import User from '../models/User';
+import Mail from '../../lib/Mail';
 
 class SubscriptionController {
   async store(req, res) {
@@ -16,7 +18,15 @@ class SubscriptionController {
     const user_id = req.userId;
     const { meetup_id } = req.body;
 
-    const meetup = await Meetup.findByPk(meetup_id);
+    const meetup = await Meetup.findByPk(meetup_id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
 
     if (meetup.user_id === user_id || meetup.done) {
       return res
@@ -60,6 +70,21 @@ class SubscriptionController {
     const subscription = await Subscription.create({
       user_id,
       meetup_id,
+    });
+
+    const { name, email } = await User.findByPk(user_id, {
+      attributes: ['name', 'email'],
+    });
+
+    Mail.sendMail({
+      to: `${meetup.user.name} <${meetup.user.email}>`,
+      subject: 'Nova inscrição',
+      template: 'subscription',
+      context: {
+        organizer: meetup.user.name,
+        name,
+        email,
+      },
     });
 
     return res.json(subscription);

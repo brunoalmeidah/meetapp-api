@@ -1,4 +1,4 @@
 export default {
-  secret: 'd0d872a252037e25611fbe39a81f47ee', // meetappbruno
+  secret: process.env.APP_SECRET, // meetappbruno
   expiresIn: '7d',
 };
