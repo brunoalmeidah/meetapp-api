@@ -7,6 +7,25 @@ import User from '../models/User';
 import Mail from '../../lib/Mail';
 
 class SubscriptionController {
+  async index(req, res) {
+    const mySubscriptions = await Subscription.findAll({
+      where: {
+        user_id: req.userId,
+      },
+      attributes: ['meetup_id'],
+      include: [
+        {
+          model: Meetup,
+          as: 'meetup',
+          attributes: ['title', 'description', 'localization', 'date'],
+          where: { date: { [Op.gt]: new Date() } },
+        },
+      ],
+      order: [[{ model: Meetup, as: 'meetup' }, 'date']],
+    });
+    return res.json(mySubscriptions);
+  }
+
   async store(req, res) {
     const schema = Yup.object().shape({
       meetup_id: Yup.number().required(),
