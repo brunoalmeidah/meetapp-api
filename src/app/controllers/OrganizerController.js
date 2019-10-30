@@ -5,8 +5,10 @@ class OrganizerController {
   async index(req, res) {
     const meetups = await Meetup.findAll({
       where: { user_id: req.userId },
-      attributes: ['id', 'title', 'description', 'localization'],
-      include: [{ model: File, as: 'image', attributes: ['path', 'url'] }],
+      attributes: ['id', 'title', 'description', 'date', 'localization'],
+      include: [
+        { model: File, as: 'image', attributes: ['id', 'path', 'url'] },
+      ],
     });
 
     return res.json(meetups);

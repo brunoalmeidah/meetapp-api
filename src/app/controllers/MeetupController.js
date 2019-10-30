@@ -3,6 +3,7 @@ import * as Yup from 'yup';
 import { Op } from 'sequelize';
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import File from '../models/File';
 
 class MeetupController {
   async index(req, res) {
@@ -40,7 +41,14 @@ class MeetupController {
       return res.status(400).json({ error: 'Cannot be past date' });
     }
 
-    const meetup = await Meetup.create(req.body);
+    const { id } = await Meetup.create(req.body);
+
+    const meetup = await Meetup.findByPk(id, {
+      attributes: ['id', 'title', 'description', 'date', 'localization'],
+      include: [
+        { model: File, as: 'image', attributes: ['id', 'path', 'url'] },
+      ],
+    });
 
     return res.json(meetup);
   }
@@ -52,7 +60,6 @@ class MeetupController {
       localization: Yup.string().required(),
       date: Yup.date().required(),
       image_id: Yup.number().required(),
-      user_id: Yup.number().required(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -76,22 +83,15 @@ class MeetupController {
       return res.status(400).json({ error: 'Cannot be past date' });
     }
 
-    const {
-      id,
-      title,
-      description,
-      date,
-      image_id,
-      user_id,
-    } = await meetup.update(req.body);
-    return res.json({
-      id,
-      title,
-      description,
-      date,
-      image_id,
-      user_id,
+    const { id } = await meetup.update(req.body);
+    const meetupUpdatted = await Meetup.findByPk(id, {
+      attributes: ['id', 'title', 'description', 'date', 'localization'],
+      include: [
+        { model: File, as: 'image', attributes: ['id', 'path', 'url'] },
+      ],
     });
+
+    return res.json(meetupUpdatted);
   }
 
   async delete(req, res) {
